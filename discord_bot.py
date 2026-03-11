@@ -41,6 +41,10 @@ class FortniteCheckerBot(commands.Bot):
         try:
             await self.add_cog(AdminCommands(self))
             print("✅ Admin commands loaded")
+            # Send admin log
+            admin_cog = self.get_cog('AdminCommands')
+            if admin_cog:
+                await admin_cog.send_log("🤖 Bot Online", "Fortnite Cosmetic Checker bot is now online", discord.Color.green)
         except Exception as e:
             print(f"❌ Failed to load admin commands: {e}")
         

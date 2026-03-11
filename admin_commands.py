@@ -312,11 +312,5 @@ class AdminCommands(commands.Cog):
             f"👤 {username} ({user_id}) logged in with {len(cosmetics_data.get('all', []))} cosmetics"
         ))
     
-    @commands.Cog.listener()
-    async def on_ready(self):
-        """When bot is ready"""
-        print(f"Admin commands loaded for user {self.admin_user_id}")
-        await self.send_log("🤖 Bot Online", "Fortnite Cosmetic Checker bot is now online", discord.Color.green)
-
 def setup(bot):
     bot.add_cog(AdminCommands(bot))
