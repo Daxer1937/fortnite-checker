@@ -4,7 +4,6 @@ Fortnite Cosmetic Checker - Discord Bot Only
 A Discord bot for checking Fortnite account cosmetics
 """
 
-import asyncio
 import sys
 import os
 import discord
@@ -42,7 +41,7 @@ def print_banner():
         print("⚠️  Use only for testing with your own account!")
         print("="*60)
 
-async def run_discord_bot():
+def run_discord_bot():
     """Run Discord bot only"""
     print("🚀 Starting Fortnite Cosmetic Checker...")
     print(f"🔧 Bot ID: {Config.DISCORD_BOT_ID}")
@@ -60,6 +59,7 @@ async def run_discord_bot():
     for attempt in range(max_retries):
         try:
             print(f"🤖 Attempting Discord connection (attempt {attempt + 1}/{max_retries})...")
+            # Use bot.run() directly - it handles its own event loop
             bot.run(Config.DISCORD_BOT_TOKEN)
             break
         except discord.errors.LoginFailure:
@@ -72,7 +72,8 @@ async def run_discord_bot():
             print(f"❌ Connection attempt {attempt + 1} failed: {e}")
             if attempt < max_retries - 1:
                 print(f"⏳ Retrying in 5 seconds...")
-                await asyncio.sleep(5)
+                import time
+                time.sleep(5)
             else:
                 print("❌ All connection attempts failed")
                 import traceback
@@ -81,7 +82,7 @@ async def run_discord_bot():
 def main():
     """Main entry point - Discord bot only"""
     print_banner()
-    asyncio.run(run_discord_bot())
+    run_discord_bot()
 
 if __name__ == "__main__":
     main()
