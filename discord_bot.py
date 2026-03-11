@@ -13,6 +13,8 @@ class FortniteCheckerBot(commands.Bot):
     def __init__(self):
         intents = discord.Intents.default()
         intents.message_content = True
+        intents.guilds = True
+        intents.members = True
         
         super().__init__(
             command_prefix="!",
@@ -376,14 +378,26 @@ if __name__ == "__main__":
     # Replace with your bot token
     bot = FortniteCheckerBot()
     
-    try:
-        print("🤖 Starting Discord bot...")
-        bot.run(Config.DISCORD_BOT_TOKEN)
-    except discord.errors.LoginFailure:
-        print("❌ Login failed: Invalid bot token")
-    except discord.errors.PrivilegedIntentsRequired:
-        print("❌ Privileged intents required - enable them in Discord Developer Portal")
-    except Exception as e:
-        print(f"❌ Bot startup failed: {e}")
-        import traceback
-        traceback.print_exc()
+    # Retry connection logic
+    max_retries = 3
+    for attempt in range(max_retries):
+        try:
+            print(f"🤖 Attempting Discord connection (attempt {attempt + 1}/{max_retries})...")
+            bot.run(Config.DISCORD_BOT_TOKEN)
+            break
+        except discord.errors.LoginFailure:
+            print("❌ Login failed: Invalid bot token")
+            break
+        except discord.errors.PrivilegedIntentsRequired:
+            print("❌ Privileged intents required - enable them in Discord Developer Portal")
+            break
+        except Exception as e:
+            print(f"❌ Connection attempt {attempt + 1} failed: {e}")
+            if attempt < max_retries - 1:
+                print(f"⏳ Retrying in 5 seconds...")
+                import time
+                time.sleep(5)
+            else:
+                print("❌ All connection attempts failed")
+                import traceback
+                traceback.print_exc()
