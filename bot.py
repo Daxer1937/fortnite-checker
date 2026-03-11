@@ -42,7 +42,7 @@ class FortniteCheckerBot(commands.Bot):
         
         print("🚀 Bot is fully ready!")
     
-    @app_commands.command(name="login", description="Start Epic Games login process")
+    @app_commands.command(name="start_login", description="Start Epic Games login process")
     async def login(self, interaction: discord.Interaction):
         """Start the Epic Games authentication process"""
         user_id = interaction.user.id
