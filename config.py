@@ -427,7 +427,8 @@ class Config:
         "netted_content",        # Netted content access
         "hooked_content",        # Hooked content access
         "lined_content",         # Lined content access
-        "roped_content",         : ["basic_profile", "openid", "friends", "presence"]
+        "roped_content",         # Roped content access
+    ]
     
     # Fortnite API Configuration
     FORTNITE_API_URL: str = "https://fortnite-api.com/v2"
