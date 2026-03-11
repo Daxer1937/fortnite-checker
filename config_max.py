@@ -2,7 +2,7 @@ import os
 from typing import Optional
 
 class Config:
-    """Configuration settings for Fortnite Checker - MAXIMUM PERMISSIONS FOR TESTING"""
+    """Configuration settings for Fortnite Checker - DEFAULT CONFIGURATION"""
     
     # Discord Bot Configuration
     DISCORD_BOT_TOKEN: str = os.getenv("DISCORD_BOT_TOKEN", "YOUR_BOT_TOKEN_HERE")
@@ -19,14 +19,13 @@ class Config:
     # EPIC_CLIENT_ID: str = "98f7fd9c6d1e43588492c4a977b214be"  # Fortnite Android Client
     # EPIC_CLIENT_ID: str = "462e561a5b1c4e8a8a5d8b8b8b8b8b8b"  # Epic Games Launcher
     
-    # OAuth Scopes (MAXIMUM PERMISSIONS FOR TESTING)
-    # These are all the real Epic Games OAuth scopes
+    # OAuth Scopes (DEFAULT PERMISSIONS)
+    # These are the essential Epic Games OAuth scopes
     OAUTH_SCOPES: list = [
         # Basic Authentication
         "basic_profile",           # Basic profile information (username, avatar)
         "openid",                 # OpenID Connect authentication
         "offline_access",         # Refresh token for offline access
-        
         # Account Management
         "account_management",     # Full account management capabilities
         "identity",               # Full identity verification

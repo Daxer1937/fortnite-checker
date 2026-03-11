@@ -1,22 +1,21 @@
 #!/usr/bin/env python3
 """
-Fortnite Cosmetic Checker - Main Entry Point
-A Discord bot and web interface for checking Fortnite account cosmetics
+Fortnite Cosmetic Checker - Discord Bot Only
+A Discord bot for checking Fortnite account cosmetics
 """
 
 import asyncio
 import sys
 import os
+import discord
 from typing import Optional
 
 # Add current directory to path for imports
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
-# Use maximum permissions config for testing
+# Use maximum permissions config as default
 from config_max import Config
 from discord_bot import FortniteCheckerBot
-from web_interface import app
-import uvicorn
 
 def print_banner():
     """Print application banner"""
@@ -24,7 +23,7 @@ def print_banner():
     ╔══════════════════════════════════════════════════════════════╗
     ║                Fortnite Cosmetic Checker                     ║
     ║                                                              ║
-    ║  🎮 Discord Bot + Web Interface for Fortnite Cosmetics     ║
+    ║  🎮 Discord Bot for Fortnite Cosmetics                      ║
     ║  🔒 Safe Epic Games OAuth Authentication                   ║
     ║  ⭐ Exclusive Item Detection                               ║
     ║                                                              ║
@@ -43,123 +42,46 @@ def print_banner():
         print("⚠️  Use only for testing with your own account!")
         print("="*60)
 
-def print_usage():
-    """Print usage instructions"""
-    usage = """
-    Usage: python main.py [mode]
-    
-    Modes:
-      discord    - Run Discord bot only
-      web        - Run web interface only  
-      both       - Run both Discord bot and web interface (default)
-    
-    Environment Variables:
-      DISCORD_BOT_TOKEN    - Your Discord bot token
-      DISCORD_BOT_ID       - Your Discord application ID
-      WEB_HOST             - Web interface host (default: 0.0.0.0)
-      WEB_PORT             - Web interface port (default: 8000)
-    
-    Setup Instructions:
-    
-    1. Discord Bot Setup:
-       - Create a bot at https://discord.com/developers/applications
-       - Enable Server Members Intent and Message Content Intent
-       - Copy your bot token and application ID
-       - Invite bot to your server with proper permissions
-    
-    2. Configuration:
-       - Edit config.py or set environment variables
-       - Make sure to set DISCORD_BOT_TOKEN and DISCORD_BOT_ID
-    
-    3. Run the application:
-       python main.py both
-    
-    Features:
-    - ✅ Safe Epic Games OAuth device code authentication
-    - 🎮 Complete Discord bot with slash commands
-    - 🌐 Beautiful web interface for viewing cosmetics
-    - 🔒 Automatic exclusive item detection
-    - ⭐ Favorite item highlighting
-    - 📊 Account statistics display
-    - 📱 Mobile-responsive design
-    """
-    print(usage)
-
 async def run_discord_bot():
-    """Run Discord bot"""
-    print("🤖 Starting Discord bot...")
+    """Run Discord bot only"""
+    print("🚀 Starting Fortnite Cosmetic Checker...")
+    print(f"🔧 Bot ID: {Config.DISCORD_BOT_ID}")
+    print(f"🔧 Testing Mode: {getattr(Config, 'TESTING_MODE', False)}")
+    print(f"🔧 Max Permissions: {getattr(Config, 'MAX_PERMISSIONS', False)}")
     
     if not Config.validate_config():
-        print("❌ Invalid configuration. Please check your settings.")
+        print("❌ Configuration validation failed!")
         return
     
-    # Update bot configuration
     bot = FortniteCheckerBot()
-    bot.application_id = Config.DISCORD_BOT_ID
     
-    try:
-        await bot.start(Config.DISCORD_BOT_TOKEN)
-    except Exception as e:
-        print(f"❌ Discord bot error: {e}")
-        return
-
-def run_web_interface():
-    """Run web interface"""
-    print("🌐 Starting web interface...")
-    
-    try:
-        uvicorn.run(
-            app,
-            host=Config.WEB_HOST,
-            port=Config.WEB_PORT,
-            log_level="info"
-        )
-    except Exception as e:
-        print(f"❌ Web interface error: {e}")
-        return
-
-async def run_both():
-    """Run both Discord bot and web interface"""
-    print("🚀 Starting both Discord bot and web interface...")
-    
-    if not Config.validate_config():
-        print("❌ Invalid configuration. Please check your settings.")
-        return
-    
-    # Start web interface in background
-    web_task = asyncio.create_task(
-        asyncio.to_thread(run_web_interface)
-    )
-    
-    # Give web interface a moment to start
-    await asyncio.sleep(2)
-    
-    # Start Discord bot
-    await run_discord_bot()
+    # Retry connection logic
+    max_retries = 3
+    for attempt in range(max_retries):
+        try:
+            print(f"🤖 Attempting Discord connection (attempt {attempt + 1}/{max_retries})...")
+            bot.run(Config.DISCORD_BOT_TOKEN)
+            break
+        except discord.errors.LoginFailure:
+            print("❌ Login failed: Invalid bot token")
+            break
+        except discord.errors.PrivilegedIntentsRequired:
+            print("❌ Privileged intents required - enable them in Discord Developer Portal")
+            break
+        except Exception as e:
+            print(f"❌ Connection attempt {attempt + 1} failed: {e}")
+            if attempt < max_retries - 1:
+                print(f"⏳ Retrying in 5 seconds...")
+                await asyncio.sleep(5)
+            else:
+                print("❌ All connection attempts failed")
+                import traceback
+                traceback.print_exc()
 
 def main():
-    """Main entry point"""
+    """Main entry point - Discord bot only"""
     print_banner()
-    
-    if len(sys.argv) > 1:
-        mode = sys.argv[1].lower()
-    else:
-        mode = "both"
-    
-    if mode in ["help", "-h", "--help"]:
-        print_usage()
-        return
-    
-    if mode == "discord":
-        asyncio.run(run_discord_bot())
-    elif mode == "web":
-        run_web_interface()
-    elif mode == "both":
-        asyncio.run(run_both())
-    else:
-        print(f"❌ Unknown mode: {mode}")
-        print_usage()
-        sys.exit(1)
+    asyncio.run(run_discord_bot())
 
 if __name__ == "__main__":
     main()
