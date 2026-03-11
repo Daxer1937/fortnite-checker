@@ -61,11 +61,24 @@ class FortniteCheckerBot(commands.Bot):
             print(f"❌ Failed to sync commands: {e}")
 
         print("🚀 Bot is fully ready!")
+
+    async def on_app_command_error(self, interaction: discord.Interaction, error: app_commands.AppCommandError):
+        print(f"❌ App command error: {type(error).__name__}: {error}")
+        try:
+            if interaction.response.is_done():
+                await interaction.followup.send(f"❌ Error: {error}", ephemeral=True)
+            else:
+                await interaction.response.send_message(f"❌ Error: {error}", ephemeral=True)
+        except Exception as e:
+            print(f"❌ Failed to send error response: {e}")
     
     @app_commands.command(name="start_login", description="Start Epic Games login process")
     async def start_login_cmd(self, interaction: discord.Interaction):
         """Start the Epic Games authentication process"""
         user_id = interaction.user.id
+
+        # Avoid the 3-second interaction timeout.
+        await interaction.response.defer(ephemeral=True, thinking=True)
         
         # Create new auth session
         auth = EpicGamesAuth()
@@ -106,17 +119,14 @@ class FortniteCheckerBot(commands.Bot):
             )
             
             embed.set_footer(text="Enter the code on the Epic Games website to continue")
-            
-            await interaction.response.send_message(embed=embed, ephemeral=True)
+
+            await interaction.followup.send(embed=embed, ephemeral=True)
             
             # Start polling for token in background
             asyncio.create_task(self.poll_for_auth(user_id, auth, interaction))
             
         except Exception as e:
-            await interaction.response.send_message(
-                f"❌ Failed to start authentication: {str(e)}",
-                ephemeral=True
-            )
+            await interaction.followup.send(f"❌ Failed to start authentication: {str(e)}", ephemeral=True)
     
     async def poll_for_auth(self, user_id: int, auth: EpicGamesAuth, interaction: discord.Interaction):
         """Poll for authentication completion"""
@@ -166,25 +176,20 @@ class FortniteCheckerBot(commands.Bot):
     async def check_cosmetics(self, interaction: discord.Interaction):
         """Check and display user's Fortnite cosmetics"""
         user_id = interaction.user.id
+
+        # Avoid the 3-second interaction timeout.
+        await interaction.response.defer(ephemeral=True, thinking=True)
         
         if user_id not in self.api_sessions:
-            await interaction.response.send_message(
-                "❌ Please login first using /start_login",
-                ephemeral=True
-            )
+            await interaction.followup.send("❌ Please login first using /start_login", ephemeral=True)
             return
-        
-        await interaction.response.defer(ephemeral=True)
         
         try:
             api = self.api_sessions[user_id]
             cosmetics = await api.get_owned_cosmetics()
             
             if not cosmetics:
-                await interaction.followup.send(
-                    "❌ No cosmetics found or API error",
-                    ephemeral=True
-                )
+                await interaction.followup.send("❌ No cosmetics found or API error", ephemeral=True)
                 return
             
             # Categorize cosmetics
@@ -224,15 +229,13 @@ class FortniteCheckerBot(commands.Bot):
     async def view_category(self, interaction: discord.Interaction, category: str):
         """View cosmetics in a specific category"""
         user_id = interaction.user.id
+
+        # Avoid the 3-second interaction timeout.
+        await interaction.response.defer(ephemeral=True, thinking=True)
         
         if user_id not in self.api_sessions:
-            await interaction.response.send_message(
-                "❌ Please login first using /start_login",
-                ephemeral=True
-            )
+            await interaction.followup.send("❌ Please login first using /start_login", ephemeral=True)
             return
-        
-        await interaction.response.defer(ephemeral=True)
         
         try:
             api = self.api_sessions[user_id]
@@ -281,6 +284,9 @@ class FortniteCheckerBot(commands.Bot):
     async def logout_cmd(self, interaction: discord.Interaction):
         """Logout user and clear session"""
         user_id = interaction.user.id
+
+        # Avoid the 3-second interaction timeout.
+        await interaction.response.defer(ephemeral=True, thinking=True)
         
         if user_id in self.auth_sessions:
             del self.auth_sessions[user_id]
@@ -288,10 +294,7 @@ class FortniteCheckerBot(commands.Bot):
         if user_id in self.api_sessions:
             del self.api_sessions[user_id]
         
-        await interaction.response.send_message(
-            "✅ Successfully logged out!",
-            ephemeral=True
-        )
+        await interaction.followup.send("✅ Successfully logged out!", ephemeral=True)
     
     def get_category_emoji(self, category: str) -> str:
         """Get emoji for category"""
