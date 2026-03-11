@@ -1,1 +1,1 @@
-web: python main_clean.py
+web: python bot.py
