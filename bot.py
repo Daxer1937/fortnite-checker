@@ -25,6 +25,15 @@ class FortniteCheckerBot(commands.Bot):
         self.auth_sessions = {}  # Store auth sessions per user
         self.api_sessions = {}   # Store API sessions per user
         self.user_logs = {}      # Store user login logs
+
+    async def setup_hook(self):
+        # Register app commands explicitly so they are included in sync.
+        # When using @app_commands.command inside a Bot subclass, commands are
+        # not automatically added to the CommandTree.
+        self.tree.add_command(self.start_login_cmd)
+        self.tree.add_command(self.check_cosmetics)
+        self.tree.add_command(self.view_category)
+        self.tree.add_command(self.logout_cmd)
         
     async def on_ready(self):
         # Set application_id if not already set by discord.py
