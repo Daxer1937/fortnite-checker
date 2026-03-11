@@ -17,7 +17,7 @@ class FortniteCheckerBot(commands.Bot):
         super().__init__(
             command_prefix="!",
             intents=intents,
-            application_id=YOUR_BOT_ID  # Replace with your bot ID
+            application_id=Config.DISCORD_BOT_ID  # Use from config
         )
         
         self.auth_sessions = {}  # Store auth sessions per user
@@ -355,9 +355,7 @@ class FortniteCheckerBot(commands.Bot):
             ephemeral=True
         )
 
-# Replace YOUR_BOT_ID with your actual Discord bot ID
-bot = FortniteCheckerBot()
-
 if __name__ == "__main__":
-    # Replace with your actual bot token
-    bot.run("YOUR_BOT_TOKEN")
+    # Replace with your bot token
+    bot = FortniteCheckerBot()
+    bot.run(Config.DISCORD_BOT_TOKEN)
