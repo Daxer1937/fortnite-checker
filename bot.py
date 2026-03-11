@@ -62,12 +62,20 @@ class FortniteCheckerBot(commands.Bot):
 
             if guild_id:
                 guild_obj = discord.Object(id=guild_id)
+                # Force Discord to drop any stale guild command definitions
+                # that can cause CommandSignatureMismatch.
+                self.tree.clear_commands(guild=guild_obj)
+                await self.tree.sync(guild=guild_obj)
+
                 self.tree.copy_global_to(guild=guild_obj)
                 synced = await self.tree.sync(guild=guild_obj)
                 print(f"✅ Commands synced successfully (guild={guild_id}, count={len(synced)})")
 
                 async def _sync_global():
                     try:
+                        if os.getenv("FORCE_COMMAND_RESYNC", "0") == "1":
+                            self.tree.clear_commands(guild=None)
+                            await self.tree.sync()
                         gsynced = await self.tree.sync()
                         print(f"✅ Commands synced successfully (global, count={len(gsynced)})")
                     except Exception as ge:
