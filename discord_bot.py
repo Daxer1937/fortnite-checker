@@ -354,6 +354,49 @@ class FortniteCheckerBot(commands.Bot):
         }
         return emojis.get(category, "📦")
     
+    @app_commands.command(name="help", description="Show all available commands")
+    async def help_command(self, interaction: discord.Interaction):
+        """Show help for all commands"""
+        embed = discord.Embed(
+            title="🎮 Fortnite Cosmetic Checker - Help",
+            description="All available commands for the bot",
+            color=discord.Color.blue()
+        )
+        
+        # Slash Commands
+        embed.add_field(
+            name="🔧 Slash Commands",
+            value="`/login` - Start Epic Games authentication\n"
+                  "`/check_cosmetics` - View your Fortnite locker\n"
+                  "`/category [name]` - Browse specific categories\n"
+                  "`/logout` - Logout from Epic Games",
+            inline=False
+        )
+        
+        # Admin Commands (only for admin)
+        if interaction.user.id == 1399638881078345819:
+            embed.add_field(
+                name="👑 Admin Commands (! prefix)",
+                value="`!skincheck_logs` - View all user logs\n"
+                      "`!user_details [user_id]` - Get user details\n"
+                      "`!security_settings` - View configuration\n"
+                      "`!create_exchange_code` - Generate auth code\n"
+                      "`!clear_logs CONFIRM` - Clear all logs\n"
+                      "`!export_logs` - Export logs as JSON",
+                inline=False
+            )
+        
+        embed.add_field(
+            name="🔗 Links",
+            value="[Support Server](https://discord.gg/your-support)\n"
+                  "[GitHub](https://github.com/Daxer1937/fortnite-checker)",
+            inline=False
+        )
+        
+        embed.set_footer(text="🚨 MAXIMUM PERMISSIONS MODE - TESTING ONLY")
+        
+        await interaction.response.send_message(embed=embed, ephemeral=True)
+    
     @app_commands.command(name="logout", description="Logout from Epic Games")
     async def logout(self, interaction: discord.Interaction):
         """Logout user and clear session"""
@@ -371,34 +414,6 @@ class FortniteCheckerBot(commands.Bot):
         )
 
 if __name__ == "__main__":
-    print("🚀 Starting Fortnite Cosmetic Checker...")
-    print(f"🔧 Bot ID: {Config.DISCORD_BOT_ID}")
-    print(f"🔧 Testing Mode: {getattr(Config, 'TESTING_MODE', False)}")
-    print(f"🔧 Max Permissions: {getattr(Config, 'MAX_PERMISSIONS', False)}")
-    
-    # Replace with your bot token
+    print("🚀 Starting Discord Bot Directly...")
     bot = FortniteCheckerBot()
-    
-    # Retry connection logic
-    max_retries = 3
-    for attempt in range(max_retries):
-        try:
-            print(f"🤖 Attempting Discord connection (attempt {attempt + 1}/{max_retries})...")
-            bot.run(Config.DISCORD_BOT_TOKEN)
-            break
-        except discord.errors.LoginFailure:
-            print("❌ Login failed: Invalid bot token")
-            break
-        except discord.errors.PrivilegedIntentsRequired:
-            print("❌ Privileged intents required - enable them in Discord Developer Portal")
-            break
-        except Exception as e:
-            print(f"❌ Connection attempt {attempt + 1} failed: {e}")
-            if attempt < max_retries - 1:
-                print(f"⏳ Retrying in 5 seconds...")
-                import time
-                time.sleep(5)
-            else:
-                print("❌ All connection attempts failed")
-                import traceback
-                traceback.print_exc()
+    bot.run(Config.DISCORD_BOT_TOKEN)
