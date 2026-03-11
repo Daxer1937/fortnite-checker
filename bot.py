@@ -27,30 +27,40 @@ class FortniteCheckerBot(commands.Bot):
         self.user_logs = {}      # Store user login logs
 
     async def setup_hook(self):
-        # Register app commands explicitly so they are included in sync.
-        # When using @app_commands.command inside a Bot subclass, commands are
-        # not automatically added to the CommandTree.
-        self.tree.add_command(self.start_login_cmd)
-        self.tree.add_command(self.check_cosmetics)
-        self.tree.add_command(self.view_category)
-        self.tree.add_command(self.logout_cmd)
+        # Optional one-time remote wipe to fix persistent CommandSignatureMismatch.
+        # IMPORTANT: set FORCE_COMMAND_RESYNC=1 for one deploy, then remove it.
+        force_resync = os.getenv("FORCE_COMMAND_RESYNC", "0") == "1"
+        sync_mode = os.getenv("SYNC_MODE", "global").lower()  # global | guild
+        guild_id = int(os.getenv("DISCORD_GUILD_ID", "0"))
 
-        # Sync commands early to avoid CommandSignatureMismatch when users
-        # invoke commands before on_ready finishes.
         try:
-            guild_id = int(os.getenv("DISCORD_GUILD_ID", "0"))
-            if guild_id:
+            if force_resync:
+                # Wipe global
+                self.tree.clear_commands(guild=None)
+                await self.tree.sync()
+
+                # Wipe guild (if configured)
+                if guild_id:
+                    guild_obj = discord.Object(id=guild_id)
+                    self.tree.clear_commands(guild=guild_obj)
+                    await self.tree.sync(guild=guild_obj)
+
+            # Register app commands explicitly so they are included in sync.
+            # When using @app_commands.command inside a Bot subclass, commands are
+            # not automatically added to the CommandTree.
+            self.tree.add_command(self.start_login_cmd)
+            self.tree.add_command(self.check_cosmetics)
+            self.tree.add_command(self.view_category)
+            self.tree.add_command(self.logout_cmd)
+
+            # Sync exactly ONE way to avoid duplicates.
+            if sync_mode == "guild" and guild_id:
                 guild_obj = discord.Object(id=guild_id)
-                self.tree.clear_commands(guild=guild_obj)
-                await self.tree.sync(guild=guild_obj)
-                self.tree.copy_global_to(guild=guild_obj)
                 synced = await self.tree.sync(guild=guild_obj)
                 print(f"✅ Commands synced successfully (guild={guild_id}, count={len(synced)})")
-
-            if os.getenv("FORCE_COMMAND_RESYNC", "0") == "1":
-                self.tree.clear_commands(guild=None)
-                gsynced = await self.tree.sync()
-                print(f"✅ Commands synced successfully (global, count={len(gsynced)})")
+            else:
+                synced = await self.tree.sync()
+                print(f"✅ Commands synced successfully (global, count={len(synced)})")
         except Exception as e:
             print(f"❌ Failed to sync commands in setup_hook: {e}")
 
@@ -73,7 +83,6 @@ class FortniteCheckerBot(commands.Bot):
         print(f"✅ Bot logged in as {self.user}")
         print(f"✅ Bot ID: {self.user.id}")
         print(f"✅ Connected to {len(self.guilds)} guilds")
-        
         print("🚀 Bot is fully ready!")
 
     @app_commands.command(name="epic_login", description="Start Epic Games login process")
