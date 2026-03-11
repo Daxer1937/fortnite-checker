@@ -22,28 +22,30 @@ const authSessions = new Map();
 const apiSessions = new Map();
 const userLogs = new Map();
 
-bot.once('ready', async () => {
+bot.once('clientReady', async () => {
   console.log(`✅ Bot logged in as ${bot.user.tag}`);
   console.log(`✅ Bot ID: ${bot.user.id}`);
   console.log(`✅ Connected to ${bot.guilds.cache.size} guilds`);
   console.log('🚀 Bot is fully ready!');
 
-  // Send startup log to admin channel
-  try {
-    const logGuild = await bot.guilds.fetch(process.env.LOG_GUILD_ID);
-    const logChannel = await logGuild.channels.fetch(process.env.LOG_CHANNEL_ID);
-    if (logChannel) {
-      const embed = {
-        title: '🤖 Bot Online',
-        description: 'Fortnite Locker Bot has started successfully',
-        color: 0x00FF00,
-        timestamp: new Date().toISOString(),
-        footer: { text: `Admin Log • User ID: ${process.env.ADMIN_USER_ID}` }
-      };
-      await logChannel.send({ embeds: [embed] });
+  // Send startup log to admin channel (optional)
+  if (process.env.LOG_GUILD_ID && process.env.LOG_CHANNEL_ID) {
+    try {
+      const logGuild = await bot.guilds.fetch(process.env.LOG_GUILD_ID);
+      const logChannel = await logGuild.channels.fetch(process.env.LOG_CHANNEL_ID);
+      if (logChannel) {
+        const embed = {
+          title: '🤖 Bot Online',
+          description: 'Fortnite Locker Bot has started successfully',
+          color: 0x00FF00,
+          timestamp: new Date().toISOString(),
+          footer: { text: `Admin Log • User ID: ${process.env.ADMIN_USER_ID}` }
+        };
+        await logChannel.send({ embeds: [embed] });
+      }
+    } catch (error) {
+      console.log('Admin log channel not found (this is OK):', error.message);
     }
-  } catch (error) {
-    console.log('Failed to send startup log:', error.message);
   }
 });
 
