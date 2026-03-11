@@ -43,7 +43,7 @@ class FortniteCheckerBot(commands.Bot):
         print("🚀 Bot is fully ready!")
     
     @app_commands.command(name="start_login", description="Start Epic Games login process")
-    async def login(self, interaction: discord.Interaction):
+    async def start_login_cmd(self, interaction: discord.Interaction):
         """Start the Epic Games authentication process"""
         user_id = interaction.user.id
         
@@ -149,7 +149,7 @@ class FortniteCheckerBot(commands.Bot):
         
         if user_id not in self.api_sessions:
             await interaction.response.send_message(
-                "❌ Please login first using /login",
+                "❌ Please login first using /start_login",
                 ephemeral=True
             )
             return
@@ -207,7 +207,7 @@ class FortniteCheckerBot(commands.Bot):
         
         if user_id not in self.api_sessions:
             await interaction.response.send_message(
-                "❌ Please login first using /login",
+                "❌ Please login first using /start_login",
                 ephemeral=True
             )
             return
@@ -258,7 +258,7 @@ class FortniteCheckerBot(commands.Bot):
             )
     
     @app_commands.command(name="logout", description="Logout from Epic Games")
-    async def logout(self, interaction: discord.Interaction):
+    async def logout_cmd(self, interaction: discord.Interaction):
         """Logout user and clear session"""
         user_id = interaction.user.id
         
@@ -346,7 +346,7 @@ class AdminCommands(commands.Cog):
         
         embed.add_field(
             name="Slash Commands (Everyone)",
-            value="`/login` - Start Epic Games authentication\n"
+            value="`/start_login` - Start Epic Games authentication\n"
                   "`/check_cosmetics` - View your Fortnite locker\n"
                   "`/category [name]` - Browse specific categories\n"
                   "`/logout` - Logout from Epic Games",
