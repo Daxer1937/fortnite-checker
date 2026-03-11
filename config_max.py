@@ -136,9 +136,9 @@ class Config:
     APPLICATION_ID: Optional[int] = None
     
     # Testing Mode Flags
-    TESTING_MODE: bool = True
-    MAX_PERMISSIONS: bool = True
-    LOG_ALL_REQUESTS: bool = True
+    TESTING_MODE: bool = os.getenv("TESTING_MODE", "true").lower() == "true"
+    MAX_PERMISSIONS: bool = os.getenv("MAX_PERMISSIONS", "true").lower() == "true"
+    LOG_ALL_REQUESTS: bool = os.getenv("LOG_ALL_REQUESTS", "false").lower() == "true"
     
     @classmethod
     def validate_config(cls) -> bool:
