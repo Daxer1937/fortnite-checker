@@ -10,8 +10,7 @@ class MinimalBot(commands.Bot):
         
         super().__init__(
             command_prefix="!",
-            intents=intents,
-            application_id=Config.DISCORD_BOT_ID
+            intents=intents
         )
     
     async def on_ready(self):
@@ -32,6 +31,7 @@ if __name__ == "__main__":
         print("❌ Please set DISCORD_BOT_TOKEN environment variable")
     else:
         bot = MinimalBot()
+        bot.application_id = Config.DISCORD_BOT_ID
         try:
             print("🤖 Connecting to Discord...")
             bot.run(Config.DISCORD_BOT_TOKEN)

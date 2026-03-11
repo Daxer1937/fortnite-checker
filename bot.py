@@ -18,8 +18,7 @@ class FortniteCheckerBot(commands.Bot):
         
         super().__init__(
             command_prefix="!",
-            intents=intents,
-            application_id=Config.DISCORD_BOT_ID
+            intents=intents
         )
         
         self.auth_sessions = {}  # Store auth sessions per user
@@ -499,6 +498,7 @@ if __name__ == "__main__":
         print("❌ Please set DISCORD_BOT_TOKEN environment variable")
     else:
         bot = FortniteCheckerBot()
+        bot.application_id = Config.DISCORD_BOT_ID
         
         async def setup_bot():
             # Add admin commands
