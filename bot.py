@@ -329,7 +329,7 @@ class AdminCommands(commands.Cog):
     def is_admin(self, ctx):
         return ctx.author.id == self.admin_user_id
     
-    @commands.command(name="help")
+    @commands.command(name="admin_help")
     async def admin_help(self, ctx):
         if not self.is_admin(ctx):
             await ctx.send("❌ Admin only command")
@@ -352,7 +352,7 @@ class AdminCommands(commands.Cog):
         
         embed.add_field(
             name="Admin Commands (! prefix)",
-            value="`!help` - Show this help\n"
+            value="`!admin_help` - Show this help\n"
                   "`!skincheck_logs` - View all user logs\n"
                   "`!user_details [user_id]` - Get user details\n"
                   "`!security_settings` - View configuration\n"
@@ -500,12 +500,15 @@ if __name__ == "__main__":
     else:
         bot = FortniteCheckerBot()
         
-        # Add admin commands
-        bot.add_cog(AdminCommands(bot))
+        async def setup_bot():
+            # Add admin commands
+            await bot.add_cog(AdminCommands(bot))
+            print("✅ Admin commands loaded")
+            await bot.start(Config.DISCORD_BOT_TOKEN)
         
         try:
             print("🤖 Connecting to Discord...")
-            bot.run(Config.DISCORD_BOT_TOKEN)
+            asyncio.run(setup_bot())
         except Exception as e:
             print(f"❌ Bot failed to start: {e}")
             import traceback
