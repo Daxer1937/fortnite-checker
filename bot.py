@@ -54,6 +54,15 @@ class FortniteCheckerBot(commands.Bot):
                 self.tree.copy_global_to(guild=guild_obj)
                 synced = await self.tree.sync(guild=guild_obj)
                 print(f"✅ Commands synced successfully (guild={guild_id}, count={len(synced)})")
+
+                async def _sync_global():
+                    try:
+                        gsynced = await self.tree.sync()
+                        print(f"✅ Commands synced successfully (global, count={len(gsynced)})")
+                    except Exception as ge:
+                        print(f"❌ Failed to sync global commands: {ge}")
+
+                asyncio.create_task(_sync_global())
             else:
                 synced = await self.tree.sync()
                 print(f"✅ Commands synced successfully (global, count={len(synced)})")
@@ -78,7 +87,9 @@ class FortniteCheckerBot(commands.Bot):
         user_id = interaction.user.id
 
         # Avoid the 3-second interaction timeout.
+        print(f"➡️ /start_login invoked by user_id={user_id}")
         await interaction.response.defer(ephemeral=True, thinking=True)
+        print(f"✅ /start_login deferred for user_id={user_id}")
         
         # Create new auth session
         auth = EpicGamesAuth()
@@ -86,7 +97,9 @@ class FortniteCheckerBot(commands.Bot):
         
         try:
             # Start device code flow
-            device_info = await auth.start_device_flow()
+            print(f"🔄 Starting Epic device flow for user_id={user_id}")
+            device_info = await asyncio.wait_for(auth.start_device_flow(), timeout=20)
+            print(f"✅ Epic device flow started for user_id={user_id}")
             
             embed = discord.Embed(
                 title="🔗 Epic Games Authentication",
@@ -125,6 +138,11 @@ class FortniteCheckerBot(commands.Bot):
             # Start polling for token in background
             asyncio.create_task(self.poll_for_auth(user_id, auth, interaction))
             
+        except asyncio.TimeoutError:
+            await interaction.followup.send(
+                "❌ Epic authentication request timed out while contacting Epic servers. Try again in a moment.",
+                ephemeral=True
+            )
         except Exception as e:
             await interaction.followup.send(f"❌ Failed to start authentication: {str(e)}", ephemeral=True)
     
