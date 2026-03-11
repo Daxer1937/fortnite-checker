@@ -35,6 +35,25 @@ class FortniteCheckerBot(commands.Bot):
         self.tree.add_command(self.view_category)
         self.tree.add_command(self.logout_cmd)
 
+        # Sync commands early to avoid CommandSignatureMismatch when users
+        # invoke commands before on_ready finishes.
+        try:
+            guild_id = int(os.getenv("DISCORD_GUILD_ID", "0"))
+            if guild_id:
+                guild_obj = discord.Object(id=guild_id)
+                self.tree.clear_commands(guild=guild_obj)
+                await self.tree.sync(guild=guild_obj)
+                self.tree.copy_global_to(guild=guild_obj)
+                synced = await self.tree.sync(guild=guild_obj)
+                print(f"✅ Commands synced successfully (guild={guild_id}, count={len(synced)})")
+
+            if os.getenv("FORCE_COMMAND_RESYNC", "0") == "1":
+                self.tree.clear_commands(guild=None)
+                gsynced = await self.tree.sync()
+                print(f"✅ Commands synced successfully (global, count={len(gsynced)})")
+        except Exception as e:
+            print(f"❌ Failed to sync commands in setup_hook: {e}")
+
         @self.tree.error
         async def on_tree_error(interaction: discord.Interaction, error: app_commands.AppCommandError):
             print(f"❌ App command error: {type(error).__name__}: {error}")
@@ -55,50 +74,17 @@ class FortniteCheckerBot(commands.Bot):
         print(f"✅ Bot ID: {self.user.id}")
         print(f"✅ Connected to {len(self.guilds)} guilds")
         
-        try:
-            guild_id = int(os.getenv("DISCORD_GUILD_ID", "0"))
-            if guild_id == 0 and self.guilds:
-                guild_id = self.guilds[0].id
-
-            if guild_id:
-                guild_obj = discord.Object(id=guild_id)
-                # Force Discord to drop any stale guild command definitions
-                # that can cause CommandSignatureMismatch.
-                self.tree.clear_commands(guild=guild_obj)
-                await self.tree.sync(guild=guild_obj)
-
-                self.tree.copy_global_to(guild=guild_obj)
-                synced = await self.tree.sync(guild=guild_obj)
-                print(f"✅ Commands synced successfully (guild={guild_id}, count={len(synced)})")
-
-                async def _sync_global():
-                    try:
-                        if os.getenv("FORCE_COMMAND_RESYNC", "0") == "1":
-                            self.tree.clear_commands(guild=None)
-                            await self.tree.sync()
-                        gsynced = await self.tree.sync()
-                        print(f"✅ Commands synced successfully (global, count={len(gsynced)})")
-                    except Exception as ge:
-                        print(f"❌ Failed to sync global commands: {ge}")
-
-                asyncio.create_task(_sync_global())
-            else:
-                synced = await self.tree.sync()
-                print(f"✅ Commands synced successfully (global, count={len(synced)})")
-        except Exception as e:
-            print(f"❌ Failed to sync commands: {e}")
-
         print("🚀 Bot is fully ready!")
 
-    @app_commands.command(name="start_login", description="Start Epic Games login process")
+    @app_commands.command(name="epic_login", description="Start Epic Games login process")
     async def start_login_cmd(self, interaction: discord.Interaction):
         """Start the Epic Games authentication process"""
         user_id = interaction.user.id
 
         # Avoid the 3-second interaction timeout.
-        print(f"➡️ /start_login invoked by user_id={user_id}")
+        print(f"➡️ /epic_login invoked by user_id={user_id}")
         await interaction.response.defer(ephemeral=True, thinking=True)
-        print(f"✅ /start_login deferred for user_id={user_id}")
+        print(f"✅ /epic_login deferred for user_id={user_id}")
 
         # Always send a visible acknowledgement so it never looks like it did nothing.
         await interaction.followup.send("🔄 Contacting Epic servers…", ephemeral=True)
@@ -211,7 +197,7 @@ class FortniteCheckerBot(commands.Bot):
         await interaction.response.defer(ephemeral=True, thinking=True)
         
         if user_id not in self.api_sessions:
-            await interaction.followup.send("❌ Please login first using /start_login", ephemeral=True)
+            await interaction.followup.send("❌ Please login first using /epic_login", ephemeral=True)
             return
         
         try:
@@ -264,7 +250,7 @@ class FortniteCheckerBot(commands.Bot):
         await interaction.response.defer(ephemeral=True, thinking=True)
         
         if user_id not in self.api_sessions:
-            await interaction.followup.send("❌ Please login first using /start_login", ephemeral=True)
+            await interaction.followup.send("❌ Please login first using /epic_login", ephemeral=True)
             return
         
         try:
@@ -399,7 +385,7 @@ class AdminCommands(commands.Cog):
         
         embed.add_field(
             name="Slash Commands (Everyone)",
-            value="`/start_login` - Start Epic Games authentication\n"
+            value="`/epic_login` - Start Epic Games authentication\n"
                   "`/check_cosmetics` - View your Fortnite locker\n"
                   "`/category [name]` - Browse specific categories\n"
                   "`/logout` - Logout from Epic Games",
