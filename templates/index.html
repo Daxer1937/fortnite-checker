@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fortnite Cosmetic Checker</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .container {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            max-width: 500px;
+            width: 90%;
+            text-align: center;
+        }
+
+        .logo {
+            font-size: 48px;
+            margin-bottom: 20px;
+        }
+
+        h1 {
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 32px;
+        }
+
+        .subtitle {
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 16px;
+        }
+
+        .login-btn {
+            background: linear-gradient(45deg, #00d2ff, #3a7bd5);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 30px;
+            font-size: 18px;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+            margin-bottom: 20px;
+        }
+
+        .login-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+        }
+
+        .login-btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .auth-section {
+            display: none;
+            margin-top: 30px;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 15px;
+        }
+
+        .user-code {
+            font-size: 36px;
+            font-weight: bold;
+            color: #3a7bd5;
+            margin: 20px 0;
+            padding: 15px;
+            background: white;
+            border-radius: 10px;
+            border: 2px dashed #3a7bd5;
+        }
+
+        .status {
+            margin-top: 20px;
+            padding: 10px;
+            border-radius: 10px;
+            font-weight: bold;
+        }
+
+        .status.pending {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        .status.success {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .status.error {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .features {
+            margin-top: 30px;
+            text-align: left;
+        }
+
+        .feature {
+            margin: 10px 0;
+            padding: 10px;
+            background: #f8f9fa;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+        }
+
+        .feature-icon {
+            font-size: 24px;
+            margin-right: 15px;
+        }
+
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #3a7bd5;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-right: 10px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="logo">🎮</div>
+        <h1>Fortnite Cosmetic Checker</h1>
+        <p class="subtitle">View your complete Fortnite locker with exclusive items highlighted</p>
+        
+        <button class="login-btn" onclick="startLogin()">Login with Epic Games</button>
+        
+        <div class="auth-section" id="authSection">
+            <h3>🔐 Epic Games Authentication</h3>
+            <p>Follow these steps to connect your account:</p>
+            
+            <div class="step">
+                <strong>Step 1:</strong> <a id="loginLink" href="#" target="_blank">Click here to open Epic Games login</a>
+            </div>
+            
+            <div class="step">
+                <strong>Step 2:</strong> Enter this code:
+                <div class="user-code" id="userCode">-</div>
+            </div>
+            
+            <div class="step">
+                <strong>Step 3:</strong> Wait for automatic confirmation...
+            </div>
+            
+            <div class="status pending" id="status">
+                <div class="loading"></div>
+                Waiting for authentication...
+            </div>
+        </div>
+        
+        <div class="features">
+            <h3>✨ Features</h3>
+            <div class="feature">
+                <span class="feature-icon">👤</span>
+                <span>View all skins, pickaxes, emotes, and more</span>
+            </div>
+            <div class="feature">
+                <span class="feature-icon">🔒</span>
+                <span>Exclusive items automatically highlighted</span>
+            </div>
+            <div class="feature">
+                <span class="feature-icon">⭐</span>
+                <span>Favorited items shown first</span>
+            </div>
+            <div class="feature">
+                <span class="feature-icon">📊</span>
+                <span>Account statistics and V-Bucks balance</span>
+            </div>
+            <div class="feature">
+                <span class="feature-icon">📱</span>
+                <span>Mobile-friendly responsive design</span>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let sessionId = null;
+        let pollInterval = null;
+
+        async function startLogin() {
+            const btn = document.querySelector('.login-btn');
+            btn.disabled = true;
+            btn.textContent = 'Starting...';
+
+            try {
+                const response = await fetch('/login');
+                const data = await response.json();
+
+                sessionId = data.session_id;
+                
+                // Update UI
+                document.getElementById('authSection').style.display = 'block';
+                document.getElementById('loginLink').href = data.verification_uri;
+                document.getElementById('userCode').textContent = data.user_code;
+                
+                btn.textContent = 'Login in Progress...';
+                
+                // Start polling
+                startPolling();
+                
+            } catch (error) {
+                console.error('Login error:', error);
+                updateStatus('error', 'Failed to start login. Please try again.');
+                btn.disabled = false;
+                btn.textContent = 'Login with Epic Games';
+            }
+        }
+
+        function startPolling() {
+            if (pollInterval) {
+                clearInterval(pollInterval);
+            }
+
+            pollInterval = setInterval(async () => {
+                try {
+                    const response = await fetch(`/check/${sessionId}`);
+                    const data = await response.json();
+
+                    if (data.status === 'success') {
+                        updateStatus('success', 'Authentication successful! Redirecting...');
+                        clearInterval(pollInterval);
+                        
+                        // Redirect to locker page
+                        setTimeout(() => {
+                            window.location.href = `/locker/${sessionId}`;
+                        }, 1500);
+                        
+                    } else if (data.status === 'error') {
+                        updateStatus('error', `Authentication failed: ${data.message}`);
+                        clearInterval(pollInterval);
+                        
+                    }
+                    // If pending, continue polling
+                    
+                } catch (error) {
+                    console.error('Polling error:', error);
+                    updateStatus('error', 'Connection error. Please try again.');
+                    clearInterval(pollInterval);
+                }
+            }, 3000); // Poll every 3 seconds
+        }
+
+        function updateStatus(type, message) {
+            const statusEl = document.getElementById('status');
+            statusEl.className = `status ${type}`;
+            
+            if (type === 'pending') {
+                statusEl.innerHTML = '<div class="loading"></div>' + message;
+            } else {
+                statusEl.innerHTML = message;
+            }
+        }
+    </script>
+</body>
+</html>

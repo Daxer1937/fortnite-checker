@@ -1,0 +1,13 @@
+version: '3.8'
+
+services:
+  fortnite-checker:
+    build: .
+    ports:
+      - "8000:8000"
+    environment:
+      - DISCORD_BOT_TOKEN=${DISCORD_BOT_TOKEN}
+      - DISCORD_BOT_ID=${DISCORD_BOT_ID}
+      - WEB_HOST=0.0.0.0
+      - WEB_PORT=8000
+    restart: unless-stopped
