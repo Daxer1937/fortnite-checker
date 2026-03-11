@@ -2,6 +2,7 @@ import discord
 from discord import app_commands
 from discord.ext import commands
 import asyncio
+import os
 import json
 import time
 from typing import Optional
@@ -35,11 +36,21 @@ class FortniteCheckerBot(commands.Bot):
         print(f"✅ Connected to {len(self.guilds)} guilds")
         
         try:
-            await self.tree.sync()
-            print("✅ Commands synced successfully")
+            guild_id = int(os.getenv("DISCORD_GUILD_ID", "0"))
+            if guild_id == 0 and self.guilds:
+                guild_id = self.guilds[0].id
+
+            if guild_id:
+                guild_obj = discord.Object(id=guild_id)
+                self.tree.copy_global_to(guild=guild_obj)
+                synced = await self.tree.sync(guild=guild_obj)
+                print(f"✅ Commands synced successfully (guild={guild_id}, count={len(synced)})")
+            else:
+                synced = await self.tree.sync()
+                print(f"✅ Commands synced successfully (global, count={len(synced)})")
         except Exception as e:
             print(f"❌ Failed to sync commands: {e}")
-        
+
         print("🚀 Bot is fully ready!")
     
     @app_commands.command(name="start_login", description="Start Epic Games login process")
