@@ -45,7 +45,8 @@ class EpicGamesAuth:
                 headers=headers
             ) as response:
                 if response.status != 200:
-                    raise Exception(f"Failed to start device flow: {response.status}")
+                    body_text = await response.text()
+                    raise Exception(f"Failed to start device flow: {response.status} - {body_text}")
                     
                 result = await response.json()
                 

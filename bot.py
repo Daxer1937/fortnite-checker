@@ -34,6 +34,17 @@ class FortniteCheckerBot(commands.Bot):
         self.tree.add_command(self.check_cosmetics)
         self.tree.add_command(self.view_category)
         self.tree.add_command(self.logout_cmd)
+
+        @self.tree.error
+        async def on_tree_error(interaction: discord.Interaction, error: app_commands.AppCommandError):
+            print(f"❌ App command error: {type(error).__name__}: {error}")
+            try:
+                if interaction.response.is_done():
+                    await interaction.followup.send(f"❌ Error: {error}", ephemeral=True)
+                else:
+                    await interaction.response.send_message(f"❌ Error: {error}", ephemeral=True)
+            except Exception as e:
+                print(f"❌ Failed to send error response: {e}")
         
     async def on_ready(self):
         # Set application_id if not already set by discord.py
@@ -71,16 +82,6 @@ class FortniteCheckerBot(commands.Bot):
 
         print("🚀 Bot is fully ready!")
 
-    async def on_app_command_error(self, interaction: discord.Interaction, error: app_commands.AppCommandError):
-        print(f"❌ App command error: {type(error).__name__}: {error}")
-        try:
-            if interaction.response.is_done():
-                await interaction.followup.send(f"❌ Error: {error}", ephemeral=True)
-            else:
-                await interaction.response.send_message(f"❌ Error: {error}", ephemeral=True)
-        except Exception as e:
-            print(f"❌ Failed to send error response: {e}")
-    
     @app_commands.command(name="start_login", description="Start Epic Games login process")
     async def start_login_cmd(self, interaction: discord.Interaction):
         """Start the Epic Games authentication process"""
@@ -90,6 +91,9 @@ class FortniteCheckerBot(commands.Bot):
         print(f"➡️ /start_login invoked by user_id={user_id}")
         await interaction.response.defer(ephemeral=True, thinking=True)
         print(f"✅ /start_login deferred for user_id={user_id}")
+
+        # Always send a visible acknowledgement so it never looks like it did nothing.
+        await interaction.followup.send("🔄 Contacting Epic servers…", ephemeral=True)
         
         # Create new auth session
         auth = EpicGamesAuth()
