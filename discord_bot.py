@@ -24,12 +24,24 @@ class FortniteCheckerBot(commands.Bot):
         self.api_sessions = {}   # Store API sessions per user
         
     async def on_ready(self):
-        print(f"Bot logged in as {self.user}")
-        await self.tree.sync()
-        print("Commands synced")
+        print(f"✅ Bot logged in as {self.user}")
+        print(f"✅ Bot ID: {self.user.id}")
+        print(f"✅ Connected to {len(self.guilds)} guilds")
+        
+        try:
+            await self.tree.sync()
+            print("✅ Commands synced successfully")
+        except Exception as e:
+            print(f"❌ Failed to sync commands: {e}")
         
         # Load admin commands
-        await self.add_cog(AdminCommands(self))
+        try:
+            await self.add_cog(AdminCommands(self))
+            print("✅ Admin commands loaded")
+        except Exception as e:
+            print(f"❌ Failed to load admin commands: {e}")
+        
+        print("🚀 Bot is fully ready!")
     
     @app_commands.command(name="login", description="Start Epic Games login process")
     async def login(self, interaction: discord.Interaction):
@@ -356,6 +368,22 @@ class FortniteCheckerBot(commands.Bot):
         )
 
 if __name__ == "__main__":
+    print("🚀 Starting Fortnite Cosmetic Checker...")
+    print(f"🔧 Bot ID: {Config.DISCORD_BOT_ID}")
+    print(f"🔧 Testing Mode: {getattr(Config, 'TESTING_MODE', False)}")
+    print(f"🔧 Max Permissions: {getattr(Config, 'MAX_PERMISSIONS', False)}")
+    
     # Replace with your bot token
     bot = FortniteCheckerBot()
-    bot.run(Config.DISCORD_BOT_TOKEN)
+    
+    try:
+        print("🤖 Starting Discord bot...")
+        bot.run(Config.DISCORD_BOT_TOKEN)
+    except discord.errors.LoginFailure:
+        print("❌ Login failed: Invalid bot token")
+    except discord.errors.PrivilegedIntentsRequired:
+        print("❌ Privileged intents required - enable them in Discord Developer Portal")
+    except Exception as e:
+        print(f"❌ Bot startup failed: {e}")
+        import traceback
+        traceback.print_exc()
