@@ -18,9 +18,9 @@ class FortniteCheckerBot(commands.Bot):
         
         super().__init__(
             command_prefix="!",
-            intents=intents,
-            application_id=int(Config.DISCORD_BOT_ID)
+            intents=intents
         )
+        self._application_id = int(Config.DISCORD_BOT_ID)
         
         self.auth_sessions = {}  # Store auth sessions per user
         self.api_sessions = {}   # Store API sessions per user
