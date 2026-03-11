@@ -5,7 +5,7 @@ import uuid
 import time
 from typing import Optional, Dict, Any
 from urllib.parse import urlencode
-from config import Config
+from config_max import Config
 
 class EpicGamesAuth:
     """Handles Epic Games OAuth Device Code Flow authentication"""

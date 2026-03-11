@@ -5,6 +5,7 @@ import asyncio
 import time
 from datetime import datetime
 from typing import Dict, List, Any
+from config_max import Config
 from auth import EpicGamesAuth
 from fortnite_api import FortniteAPI
 

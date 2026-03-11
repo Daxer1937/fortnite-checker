@@ -8,6 +8,7 @@ from typing import Optional
 from auth import EpicGamesAuth
 from fortnite_api import FortniteAPI
 from admin_commands import AdminCommands
+from config_max import Config
 
 class FortniteCheckerBot(commands.Bot):
     def __init__(self):
