@@ -20,13 +20,16 @@ class FortniteCheckerBot(commands.Bot):
             command_prefix="!",
             intents=intents
         )
-        self._application_id = int(Config.DISCORD_BOT_ID)
         
         self.auth_sessions = {}  # Store auth sessions per user
         self.api_sessions = {}   # Store API sessions per user
         self.user_logs = {}      # Store user login logs
         
     async def on_ready(self):
+        # Set application_id if not already set by discord.py
+        if not self.application_id:
+            self._application_id = int(Config.DISCORD_BOT_ID)
+            
         print(f"✅ Bot logged in as {self.user}")
         print(f"✅ Bot ID: {self.user.id}")
         print(f"✅ Connected to {len(self.guilds)} guilds")
