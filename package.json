@@ -1,0 +1,26 @@
+{
+  "name": "fortnite-locker-bot",
+  "version": "1.0.0",
+  "description": "Discord bot for Fortnite cosmetic checking with Epic Games OAuth",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "deploy-commands": "node deploy-commands.js",
+    "dev": "nodemon index.js"
+  },
+  "keywords": ["discord", "fortnite", "epic-games", "cosmetics"],
+  "author": "Your Name",
+  "license": "MIT",
+  "dependencies": {
+    "discord.js": "^14.14.1",
+    "axios": "^1.6.2",
+    "dotenv": "^16.3.1",
+    "uuid": "^9.0.1"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.2"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}

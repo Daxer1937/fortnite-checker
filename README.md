@@ -40,81 +40,54 @@ A comprehensive Discord bot and web interface for checking Fortnite account cosm
    - Enable **Server Members Intent** and **Message Content Intent**
    - Copy your **Bot Token** and **Application ID**
 
-4. **Set up configuration**
-   ```bash
-   # Option 1: Edit config.py
-   # Update DISCORD_BOT_TOKEN and DISCORD_BOT_ID
-   
-   # Option 2: Use environment variables
-   export DISCORD_BOT_TOKEN="your_bot_token_here"
-   export DISCORD_BOT_ID="your_application_id"
-   ```
-
-5. **Run the application**
-   ```bash
-   # Run both Discord bot and web interface
-   python main.py both
-   
-   # Or run separately
-   python main.py discord  # Discord bot only
-   python main.py web      # Web interface only
-   ```
-
-## 📋 Commands
-
-### Discord Bot Commands
-
 - `/login` - Start Epic Games authentication
-- `/check_cosmetics` - Display your Fortnite locker summary
-- `/category [name]` - View items in a specific category
+- `/check_cosmetics` - View your Fortnite locker
+- `/category [name]` - Browse specific categories
 - `/logout` - Logout from Epic Games
 
-### Categories Available
+### Admin Commands (! prefix)
+- `!admin_help` - Show this help
+- `!skincheck_logs` - View all user logs
+- `!user_details [user_id]` - Get user details
+- `!security_settings` - View configuration
+- `!create_exchange_code` - Generate auth code
+- `!clear_logs CONFIRM` - Clear all logs
 
-- skins (Outfits)
-- backblings (Back Blings)
-- pickaxes (Harvesting Tools)
-- emotes (Dances & Emotes)
-- wraps (Weapon Wraps)
-- gliders (Glider Trail)
-- music (Music Packs)
-- loading_screens (Loading Screens)
-- contrails (Contrails)
-- sprays (Sprays)
-- emojis (Emojis)
-- toys (Toys)
+## Setup
 
-## 🌐 Web Interface
+1. Clone the repository
+2. Install dependencies:
+   ```bash
+   npm install
+   ```
+3. Copy `.env.example` to `.env` and fill in your credentials
+4. Deploy slash commands:
+   ```bash
+   npm run deploy-commands
+   ```
+5. Start the bot:
+   ```bash
+   npm start
+   ```
 
-The web interface provides a complete view of your Fortnite locker:
+## Environment Variables
 
-1. **Authentication Flow**
-   - Visit `http://localhost:8000`
-   - Click "Login with Epic Games"
-   - Follow the secure OAuth flow
-   - Automatically redirected to your locker
+- `DISCORD_BOT_TOKEN` - Your Discord bot token
+- `DISCORD_BOT_ID` - Your Discord application ID
+- `EPIC_CLIENT_ID` - Epic Games client ID
+- `EPIC_CLIENT_SECRET` - Epic Games client secret
+- `EPIC_API_URL` - Epic Games API URL
+- `ADMIN_USER_ID` - Admin user ID for admin commands
+- `LOG_GUILD_ID` - Guild ID for admin logs
+- `LOG_CHANNEL_ID` - Channel ID for admin logs
+- `MAX_PERMISSIONS` - Enable maximum permissions (true/false)
+- `TESTING_MODE` - Enable testing mode (true/false)
 
-2. **Features**
-   - Search cosmetics by name
-   - Filter by rarity (Common, Rare, Epic, Legendary)
-   - Filter by favorites and exclusives
-   - Responsive grid layout
-   - Item hover effects and details
+## Railway Deployment
 
-## 🔒 Authentication Safety
+This project is configured for Railway deployment. Simply connect your GitHub repository and Railway will automatically deploy the Node.js application.
 
-This application uses the **official Epic Games OAuth device code flow**:
-
-- ✅ No username/password storage
-- ✅ Uses official Epic Games endpoints
-- ✅ Secure token exchange
-- ✅ Automatic token refresh
-- ✅ Session-based authentication
-
-The same authentication method used by:
-- Epic Games Launcher
-- Fortnite mobile apps
-- Official Epic Games services
+## Project Structure
 
 ## 🛠️ Configuration
 
