@@ -76,11 +76,11 @@ async function handleViewBackupCodes(interaction, auth) {
     }
 
     const embed = {
-      title: '🔐 Your Epic Games Backup Codes',
-      description: `Total backup codes: ${backupCodes.length}`,
-      color: 0x00FF00,
+      title: '🔐 Your Epic Games Backup Codes (Demo)',
+      description: `Total backup codes: ${backupCodes.length}\n\n⚠️ Epic Games doesn\'t provide backup codes through API, showing demo codes for illustration.`,
+      color: 0xFF9900,
       fields: [],
-      footer: { text: '🔒 REAL Epic Games backup codes - Keep secure!' }
+      footer: { text: '🔒 Demo backup codes - For illustration purposes only' }
     };
 
     backupCodes.forEach((code, index) => {
