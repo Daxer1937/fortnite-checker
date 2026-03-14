@@ -3,7 +3,7 @@ const { SlashCommandBuilder } = require('discord.js');
 module.exports = {
   data: new SlashCommandBuilder()
     .setName('backup_codes')
-    .setDescription('View your backup codes')
+    .setDescription('View your Epic Games backup codes')
     .addSubcommand(subcommand =>
       subcommand
         .setName('view')
@@ -33,7 +33,7 @@ module.exports = {
 
     if (!authSessions.has(userId)) {
       await interaction.followUp({
-        content: '❌ Please login first using `/login` (demo) or `/real_login` (real backup codes)',
+        content: '❌ Please login first using /login',
         ephemeral: true
       });
       return;
@@ -41,19 +41,16 @@ module.exports = {
 
     try {
       const auth = authSessions.get(userId);
-      
-      // Check if this is real Epic Games auth or demo
-      const isRealAuth = auth.constructor.name === 'EpicGamesAuthReal' && auth.accessToken;
 
       switch (subcommand) {
         case 'view':
-          await handleViewBackupCodes(interaction, auth, isRealAuth);
+          await handleViewBackupCodes(interaction, auth);
           break;
         case 'generate':
-          await handleGenerateBackupCode(interaction, auth, isRealAuth);
+          await handleGenerateBackupCode(interaction, auth);
           break;
         case 'delete':
-          await handleDeleteBackupCode(interaction, auth, interaction.options.getString('code_id'), isRealAuth);
+          await handleDeleteBackupCode(interaction, auth, interaction.options.getString('code_id'));
           break;
       }
     } catch (error) {
@@ -66,9 +63,9 @@ module.exports = {
   }
 };
 
-async function handleViewBackupCodes(interaction, auth, isRealAuth) {
+async function handleViewBackupCodes(interaction, auth) {
   try {
-    const backupCodes = await auth.getBackupCodes(interaction.user.id);
+    const backupCodes = await auth.getBackupCodes();
     
     if (!backupCodes || backupCodes.length === 0) {
       await interaction.followUp({
@@ -79,13 +76,11 @@ async function handleViewBackupCodes(interaction, auth, isRealAuth) {
     }
 
     const embed = {
-      title: isRealAuth ? '🔐 Your REAL Epic Games Backup Codes' : '🔐 Your Demo Backup Codes',
+      title: '🔐 Your Epic Games Backup Codes',
       description: `Total backup codes: ${backupCodes.length}`,
-      color: isRealAuth ? 0x00FF00 : 0x0099FF,
+      color: 0x00FF00,
       fields: [],
-      footer: { 
-        text: isRealAuth ? '🔒 REAL Epic Games backup codes - Keep secure!' : '⚠️ Demo codes - For illustration only'
-      }
+      footer: { text: '🔒 REAL Epic Games backup codes - Keep secure!' }
     };
 
     backupCodes.forEach((code, index) => {
@@ -109,13 +104,13 @@ async function handleViewBackupCodes(interaction, auth, isRealAuth) {
   }
 }
 
-async function handleGenerateBackupCode(interaction, auth, isRealAuth) {
+async function handleGenerateBackupCode(interaction, auth) {
   try {
-    const newCode = await auth.generateBackupCode(interaction.user.id);
+    const newCode = await auth.generateBackupCode();
     
     const embed = {
-      title: isRealAuth ? '🔑 New REAL Backup Code Generated' : '🔑 New Demo Backup Code Generated',
-      description: isRealAuth ? 'Real Epic Games backup code for account recovery' : 'Demo backup code for illustration purposes',
+      title: '🔑 New Backup Code Generated',
+      description: 'Real Epic Games backup code for account recovery',
       color: 0x00FF00,
       fields: [
         {
@@ -129,16 +124,12 @@ async function handleGenerateBackupCode(interaction, auth, isRealAuth) {
           inline: false
         },
         {
-          name: isRealAuth ? '🔒 Important' : '⚠️ Important',
-          value: isRealAuth 
-            ? 'Save this REAL backup code in a secure location. It can be used to recover your Epic Games account.'
-            : 'This is a demo code for illustration. Real backup codes are managed through Epic Games account settings.',
+          name: '🔒 Important',
+          value: 'Save this REAL backup code in a secure location. It can be used to recover your Epic Games account.',
           inline: false
         }
       ],
-      footer: { 
-        text: isRealAuth ? 'REAL Epic Games backup code - Keep secure!' : 'Demo functionality - Not actual Epic Games backup codes'
-      }
+      footer: { text: 'REAL Epic Games backup code - Keep secure!' }
     };
 
     await interaction.followUp({ embeds: [embed], ephemeral: true });
@@ -151,14 +142,12 @@ async function handleGenerateBackupCode(interaction, auth, isRealAuth) {
   }
 }
 
-async function handleDeleteBackupCode(interaction, auth, codeId, isRealAuth) {
+async function handleDeleteBackupCode(interaction, auth, codeId) {
   try {
-    await auth.deleteBackupCode(interaction.user.id, codeId);
+    await auth.deleteBackupCode(codeId);
     
     await interaction.followUp({
-      content: isRealAuth 
-        ? `✅ REAL backup code deleted successfully!` 
-        : `✅ Demo backup code deleted successfully!`,
+      content: `✅ REAL backup code deleted successfully!`,
       ephemeral: true
     });
 

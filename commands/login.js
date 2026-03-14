@@ -1,64 +1,54 @@
 const { SlashCommandBuilder } = require('discord.js');
-const { FortniteAPIAuth } = require('../utils/fortniteAuth');
+const { EpicGamesAuth } = require('../utils/auth');
 
 module.exports = {
   data: new SlashCommandBuilder()
     .setName('login')
-    .setDescription('Login to Fortnite (bypass Epic Games OAuth issues)')
-    .addStringOption(option =>
-      option.setName('username')
-        .setDescription('Your Epic Games username')
-        .setRequired(true)
-    ),
+    .setDescription('Login with Epic Games for REAL backup codes'),
 
   async execute(interaction, { authSessions, apiSessions, userLogs, bot }) {
     await interaction.deferReply({ ephemeral: true });
 
-    const username = interaction.options.getString('username');
     const userId = interaction.user.id;
+    
+    // Create new Epic Games auth session
+    const auth = new EpicGamesAuth();
+    authSessions.set(userId, auth);
 
     try {
-      // Use Fortnite API Auth (bypasses Epic Games OAuth)
-      const auth = new FortniteAPIAuth();
-      const session = await auth.createSession(userId, username);
-      
-      // Store session
-      authSessions.set(userId, auth);
-      apiSessions.set(userId, auth);
-
-      // Log user login
-      logUserLogin(userId, username, auth, { userLogs, bot });
+      // Authenticate with Epic Games
+      console.log(`🔄 Authenticating user_id=${userId}`);
+      await auth.authenticate();
+      console.log(`✅ User authenticated: ${userId}`);
 
       const embed = {
-        title: '✅ Fortnite Login Successful',
-        description: `Logged in as **${username}**`,
+        title: '✅ Epic Games Login Successful!',
+        description: 'Successfully authenticated with Epic Games API',
         color: 0x00FF00,
         fields: [
           {
-            name: '🎮 Features Available',
-            value: '• View cosmetics collection\n• Manage backup codes\n• Browse categories',
+            name: '🔑 Backup Codes Access',
+            value: '✅ You can now view your REAL Epic Games backup codes',
             inline: false
           },
           {
-            name: '🔐 Authentication Method',
-            value: 'Fortnite API (bypasses Epic Games OAuth restrictions)',
+            name: '🎯 Next Steps',
+            value: 'Use `/backup_codes view` to see your actual backup codes',
             inline: false
-          },
-          {
-            name: '📊 Cosmetics Found',
-            value: `${session.cosmetics.length} items available`,
-            inline: true
           }
         ],
-        footer: { text: 'Use /check_cosmetics and /backup_codes to continue' }
+        footer: { text: 'REAL Epic Games authentication - Full access enabled' }
       };
 
       await interaction.followUp({ embeds: [embed], ephemeral: true });
 
+      // Log user login
+      logUserLogin(userId, 'Epic Games User', auth, { userLogs, bot });
+
     } catch (error) {
-      console.error('Fortnite login error:', error);
+      console.error('Login error:', error);
       await interaction.followUp({
-        content: `❌ Login failed: ${error.message}`,
+        content: `❌ Failed to authenticate: ${error.message}`,
         ephemeral: true
       });
     }
@@ -70,7 +60,8 @@ function logUserLogin(userId, username, auth, { userLogs, bot }) {
     timestamp: Date.now(),
     username: username,
     cosmeticsCount: 'Unknown',
-    exclusivesCount: 'Unknown'
+    exclusivesCount: 'Unknown',
+    authType: 'REAL Epic Games OAuth'
   });
 
   // Send to admin log channel (if configured)
@@ -85,8 +76,8 @@ function logUserLogin(userId, username, auth, { userLogs, bot }) {
           guild.channels.fetch(logChannelId).then(channel => {
             if (channel) {
               const embed = {
-                title: '✅ User Login (Fortnite API)',
-                description: `👤 ${username} (${userId}) logged in successfully`,
+                title: '✅ REAL User Login (Epic Games OAuth)',
+                description: `👤 ${username} (${userId}) logged in with REAL Epic Games access`,
                 color: 0x00FF00,
                 timestamp: new Date().toISOString(),
                 footer: { text: `Admin Log • User ID: ${adminUserId}` }
