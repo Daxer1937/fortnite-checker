@@ -32,7 +32,12 @@ module.exports = {
           },
           {
             name: '📋 Instructions',
-            value: '1. Click the link above\n2. Login to your Epic Games account\n3. Authorize the application\n4. Come back here and use `/login_complete <code>`',
+            value: '1. Click the link above\n2. Login to your Epic Games account\n3. Authorize the application\n4. You will be redirected to a page with a code in the URL\n5. Copy the code (the part after `code=`)\n6. Come back here and use `/login_complete <code>`',
+            inline: false
+          },
+          {
+            name: '🔍 Example',
+            value: 'If redirected to: `https://accounts.epicgames.com/fnauth?code=ABC123XYZ`\nYour code is: `ABC123XYZ`',
             inline: false
           },
           {

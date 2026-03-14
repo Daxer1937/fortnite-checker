@@ -70,8 +70,7 @@ class EpicGamesAuth {
     
     const data = new URLSearchParams({
       grant_type: 'authorization_code',
-      code: authorizationCode,
-      token_type: 'eg1'
+      code: authorizationCode
     });
 
     const config = {
@@ -84,11 +83,18 @@ class EpicGamesAuth {
     };
 
     try {
+      console.log(`🔄 Exchanging code: ${authorizationCode}`);
+      console.log(`🔄 Request data: ${data.toString()}`);
+      console.log(`🔄 Basic auth: ${basicAuth.substring(0, 20)}...`);
+      
       const response = await axios.post(
         `${this.epicApi}/account/api/oauth/token`,
         data.toString(),
         config
       );
+
+      console.log(`🔄 Response status: ${response.status}`);
+      console.log(`🔄 Response data:`, response.data);
 
       if (response.status === 200) {
         const result = response.data;
@@ -103,6 +109,7 @@ class EpicGamesAuth {
         throw new Error(`Token exchange failed: ${response.status}`);
       }
     } catch (error) {
+      console.error('🔄 Token exchange error:', error.response?.data || error.message);
       if (error.response) {
         throw new Error(`Token exchange failed: ${error.response.status} - ${JSON.stringify(error.response.data)}`);
       }
