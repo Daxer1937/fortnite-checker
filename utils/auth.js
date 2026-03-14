@@ -59,7 +59,7 @@ class EpicGamesAuth {
     const params = new URLSearchParams({
       clientId: this.clientId,
       responseType: 'code',
-      scope: 'openid offline_access basic_profile friends_list presence library'
+      scope: 'openid offline_access basic_profile friends_list presence'
     });
 
     return `https://www.epicgames.com/id/api/redirect?${params.toString()}`;
