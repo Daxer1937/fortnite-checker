@@ -2,9 +2,9 @@ const axios = require('axios');
 
 class EpicGamesAuth {
   constructor() {
-    // Use the actual Fortnite client credentials from documentation
-    this.clientId = 'xyza7891343Fr4ZSPkQZ3kaL3I2sX8B5';
-    this.clientSecret = 'F8BVRyHIqmct8cN9KSPbXsJszpiIZEYEFDiySxc1wuA';
+    // Use the fortnitePCGameClient credentials from documentation
+    this.clientId = 'ec684b8c687f479fadea3cb2ad83f5c6';
+    this.clientSecret = 'e1f31c211f28413186262d37a13fc84d';
     this.epicApi = 'https://account-public-service-prod.ol.epicgames.com';
     this.accessToken = null;
     this.refreshToken = null;
@@ -59,7 +59,7 @@ class EpicGamesAuth {
     const params = new URLSearchParams({
       clientId: this.clientId,
       responseType: 'code',
-      scope: 'basic_profile friends presence openid viewbackupcodes'
+      scope: 'openid offline_access basic_profile friends_list presence library'
     });
 
     return `https://www.epicgames.com/id/api/redirect?${params.toString()}`;
@@ -70,7 +70,8 @@ class EpicGamesAuth {
     
     const data = new URLSearchParams({
       grant_type: 'authorization_code',
-      code: authorizationCode
+      code: authorizationCode,
+      token_type: 'eg1'
     });
 
     const config = {
