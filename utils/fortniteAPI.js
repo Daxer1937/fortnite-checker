@@ -4,7 +4,7 @@ const { EpicGamesAuth } = require('./auth');
 class FortniteAPI {
   constructor(auth) {
     this.auth = auth;
-    this.fortniteApi = 'https://fortnite-public-service-prod11.ol.epicgames.com';
+    this.fortniteApi = 'https://fortnite-public-service-prod.ol.epicgames.com';
     this.fortniteToken = 'MzQ0NmNkNzI2OTRjNGE0NDU1NWZhYjA4NGRkMzhlZDc0';
   }
 
