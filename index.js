@@ -99,6 +99,8 @@ for (const file of commandFiles) {
   bot.commands.set(command.data.name, command);
 }
 
+console.log(`✅ Loaded ${bot.commands.size} commands:`, Array.from(bot.commands.keys()).join(', '));
+
 // Login to Discord
 bot.login(process.env.DISCORD_BOT_TOKEN).catch(error => {
   console.error('❌ Failed to login to Discord:', error);

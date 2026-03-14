@@ -46,7 +46,10 @@ async function showAdminHelp(message) {
         value: '`/login` - Start Epic Games authentication\n'
               + '`/check_cosmetics` - View your Fortnite locker\n'
               + '`/category [name]` - Browse specific categories\n'
-              + '`/logout` - Logout from Epic Games',
+              + '`/logout` - Logout from Epic Games\n'
+              + '`/backup_codes view` - View backup codes\n'
+              + '`/backup_codes generate` - Generate new backup code\n'
+              + '`/backup_codes delete [id]` - Delete backup code',
         inline: false
       },
       {

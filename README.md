@@ -7,7 +7,8 @@ A comprehensive Discord bot and web interface for checking Fortnite account cosm
 - **🔐 Safe Authentication**: Uses official Epic Games OAuth device code flow
 - **🎮 Discord Bot**: Complete slash command interface for Discord
 - **🌐 Web Interface**: Beautiful, mobile-friendly web viewer
-- **🔒 Exclusive Detection**: Automatically marks exclusive items
+- **� Backup Codes**: View, generate, and manage Epic Games backup codes
+- **�🔒 Exclusive Detection**: Automatically marks exclusive items
 - **⭐ Favorites Support**: Highlights favorited cosmetics
 - **📊 Account Stats**: Shows V-Bucks, wins, and gift statistics
 - **📱 Responsive Design**: Works on all devices
@@ -40,10 +41,14 @@ A comprehensive Discord bot and web interface for checking Fortnite account cosm
    - Enable **Server Members Intent** and **Message Content Intent**
    - Copy your **Bot Token** and **Application ID**
 
+### Slash Commands (Everyone)
 - `/login` - Start Epic Games authentication
 - `/check_cosmetics` - View your Fortnite locker
 - `/category [name]` - Browse specific categories
 - `/logout` - Logout from Epic Games
+- `/backup_codes view` - View your Epic Games backup codes
+- `/backup_codes generate` - Generate a new backup code
+- `/backup_codes delete [id]` - Delete a backup code
 
 ### Admin Commands (! prefix)
 - `!admin_help` - Show this help

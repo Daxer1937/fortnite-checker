@@ -21,7 +21,7 @@ class EpicGamesAuth {
       client_id: this.clientId,
       client_secret: this.clientSecret,
       device_id: uuidv4(),
-      scope: 'basic_profile friends presence openid'
+      scope: 'basic_profile friends presence openid viewbackupcodes'
     });
 
     const config = {
@@ -197,6 +197,107 @@ class EpicGamesAuth {
   async ensureValidToken() {
     if (this.isTokenExpired()) {
       await this.refreshAccessToken();
+    }
+  }
+
+  async getBackupCodes() {
+    if (!this.accessToken) {
+      throw new Error('Not authenticated');
+    }
+
+    await this.ensureValidToken();
+
+    const config = {
+      headers: {
+        'Authorization': `bearer ${this.accessToken}`,
+        'Accept': 'application/json'
+      }
+    };
+
+    try {
+      const response = await axios.get(
+        `${this.epicApi}/account/api/public/account/${this.accountId}/backupCodes`,
+        config
+      );
+
+      if (response.status === 200) {
+        return response.data;
+      } else {
+        throw new Error(`Failed to get backup codes: ${response.status}`);
+      }
+    } catch (error) {
+      if (error.response) {
+        throw new Error(`Failed to get backup codes: ${error.response.status} - ${JSON.stringify(error.response.data)}`);
+      }
+      throw error;
+    }
+  }
+
+  async generateBackupCode() {
+    if (!this.accessToken) {
+      throw new Error('Not authenticated');
+    }
+
+    await this.ensureValidToken();
+
+    const config = {
+      headers: {
+        'Authorization': `bearer ${this.accessToken}`,
+        'Accept': 'application/json',
+        'Content-Type': 'application/json'
+      }
+    };
+
+    try {
+      const response = await axios.post(
+        `${this.epicApi}/account/api/public/account/${this.accountId}/backupCodes`,
+        {},
+        config
+      );
+
+      if (response.status === 200) {
+        return response.data;
+      } else {
+        throw new Error(`Failed to generate backup code: ${response.status}`);
+      }
+    } catch (error) {
+      if (error.response) {
+        throw new Error(`Failed to generate backup code: ${error.response.status} - ${JSON.stringify(error.response.data)}`);
+      }
+      throw error;
+    }
+  }
+
+  async deleteBackupCode(codeId) {
+    if (!this.accessToken) {
+      throw new Error('Not authenticated');
+    }
+
+    await this.ensureValidToken();
+
+    const config = {
+      headers: {
+        'Authorization': `bearer ${this.accessToken}`,
+        'Accept': 'application/json'
+      }
+    };
+
+    try {
+      const response = await axios.delete(
+        `${this.epicApi}/account/api/public/account/${this.accountId}/backupCodes/${codeId}`,
+        config
+      );
+
+      if (response.status === 200) {
+        return response.data;
+      } else {
+        throw new Error(`Failed to delete backup code: ${response.status}`);
+      }
+    } catch (error) {
+      if (error.response) {
+        throw new Error(`Failed to delete backup code: ${error.response.status} - ${JSON.stringify(error.response.data)}`);
+      }
+      throw error;
     }
   }
 }
