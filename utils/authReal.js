@@ -1,12 +1,18 @@
 const axios = require('axios');
 const { v4: uuidv4 } = require('uuid');
 
-class EpicGamesAuth {
+class EpicGamesAuthReal {
   constructor() {
     this.clientId = process.env.EPIC_CLIENT_ID;
     this.clientSecret = process.env.EPIC_CLIENT_SECRET;
-    // Use the correct Epic Games API endpoint from documentation
-    this.epicApi = 'https://api.epicgames.dev/epic';
+    // Try different Epic Games endpoints
+    this.endpoints = [
+      'https://account-public-service-prod.ol.epicgames.com',
+      'https://account-public-service-prod01.ol.epicgames.com',
+      'https://account-public-service-prod02.ol.epicgames.com',
+      'https://account-public-service.epicgames.com'
+    ];
+    this.currentEndpoint = null;
     this.deviceCode = null;
     this.userCode = null;
     this.verificationUri = "https://www.epicgames.com/id/activate";
@@ -16,7 +22,36 @@ class EpicGamesAuth {
     this.accountId = null;
   }
 
+  async findWorkingEndpoint() {
+    for (const endpoint of this.endpoints) {
+      try {
+        // Test with a simple request
+        const response = await axios.get(`${endpoint}/account/api/oauth/authorize`, {
+          timeout: 5000,
+          headers: {
+            'User-Agent': 'EpicGamesLauncher/11.0.1-15407791+++Portal+Release-11.0 Windows/11.10.0-15306973, branch:release',
+            'Accept': 'application/json'
+          }
+        });
+        
+        if (response.status === 200 || response.status === 302) {
+          this.currentEndpoint = endpoint;
+          console.log(`✅ Found working endpoint: ${endpoint}`);
+          return endpoint;
+        }
+      } catch (error) {
+        console.log(`❌ Endpoint failed: ${endpoint} - ${error.message}`);
+        continue;
+      }
+    }
+    throw new Error('No working Epic Games endpoint found');
+  }
+
   async startDeviceFlow() {
+    if (!this.currentEndpoint) {
+      await this.findWorkingEndpoint();
+    }
+
     const data = new URLSearchParams({
       grant_type: 'device_code',
       client_id: this.clientId,
@@ -29,53 +64,42 @@ class EpicGamesAuth {
       headers: {
         'Content-Type': 'application/x-www-form-urlencoded',
         'Accept': 'application/json',
-        'User-Agent': 'EpicGamesLauncher/11.0.1-15407791+++Portal+Release-11.0 Windows/11.10.0-15306973, branch:release'
+        'User-Agent': 'EpicGamesLauncher/11.0.1-15407791+++Portal+Release-11.0 Windows/11.10.0-15306973, branch:release',
+        'X-Epic-Client-Info': `{"client_id":"${this.clientId}","client_secret":"${this.clientSecret}"}`
       }
     };
 
-    // Try multiple endpoints
-    const endpoints = [
-      'https://account-public-service-prod.ol.epicgames.com/account/api/oauth/device_authorization',
-      'https://account-public-service.epicgames.com/account/api/oauth/device_authorization',
-      'https://epicgames.com/account/api/oauth/device_authorization',
-      'https://www.epicgames.com/account/api/oauth/device_authorization'
-    ];
+    try {
+      const response = await axios.post(
+        `${this.currentEndpoint}/account/api/oauth/device_authorization`,
+        data.toString(),
+        config
+      );
 
-    let lastError = null;
+      if (response.status === 200) {
+        const result = response.data;
+        this.deviceCode = result.device_code;
+        this.userCode = result.user_code;
+        this.verificationUri = result.verification_uri || this.verificationUri;
+        this.expiresIn = result.expires_in;
+        this.interval = result.interval;
 
-    for (const endpoint of endpoints) {
-      try {
-        console.log(`🔄 Trying endpoint: ${endpoint}`);
-        const response = await axios.post(endpoint, data.toString(), config);
-        
-        if (response.status === 200) {
-          const result = response.data;
-          this.deviceCode = result.device_code;
-          this.userCode = result.user_code;
-          this.verificationUri = result.verification_uri || this.verificationUri;
-          this.expiresIn = result.expires_in;
-          this.interval = result.interval;
-
-          // Store the base URL for future requests
-          const url = new URL(endpoint);
-          this.epicApi = `${url.protocol}//${url.host}`;
-
-          console.log(`✅ Success with endpoint: ${endpoint}`);
-          return {
-            user_code: this.userCode,
-            verification_uri: this.verificationUri,
-            expires_in: this.expiresIn,
-            interval: this.interval
-          };
-        }
-      } catch (error) {
-        lastError = error;
-        console.log(`❌ Failed: ${endpoint} - ${error.message}`);
-        continue;
+        return {
+          user_code: this.userCode,
+          verification_uri: this.verificationUri,
+          expires_in: this.expiresIn,
+          interval: this.interval
+        };
+      } else {
+        throw new Error(`Device flow failed: ${response.status} - ${JSON.stringify(response.data)}`);
       }
+    } catch (error) {
+      if (error.response) {
+        console.log('Device flow error response:', error.response.status, error.response.data);
+        throw new Error(`Device flow failed: ${error.response.status} - ${JSON.stringify(error.response.data)}`);
+      }
+      throw error;
     }
-
-    throw lastError || new Error('All endpoints failed');
   }
 
   async pollForToken() {
@@ -94,13 +118,13 @@ class EpicGamesAuth {
       headers: {
         'Content-Type': 'application/x-www-form-urlencoded',
         'Accept': 'application/json',
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
+        'User-Agent': 'EpicGamesLauncher/11.0.1-15407791+++Portal+Release-11.0 Windows/11.10.0-15306973, branch:release'
       }
     };
 
     try {
       const response = await axios.post(
-        `${this.epicApi}/account/api/oauth/token`,
+        `${this.currentEndpoint}/account/api/oauth/token`,
         data.toString(),
         config
       );
@@ -110,6 +134,7 @@ class EpicGamesAuth {
         this.accessToken = result.access_token;
         this.refreshToken = result.refresh_token;
         this.expiresAt = Date.now() + (result.expires_in * 1000);
+        console.log('✅ Successfully got Epic Games token!');
         return true;
       } else if (response.status === 400) {
         const errorData = response.data;
@@ -126,6 +151,7 @@ class EpicGamesAuth {
       }
     } catch (error) {
       if (error.response) {
+        console.log('Token error response:', error.response.status, error.response.data);
         throw new Error(`Token request failed: ${error.response.status} - ${JSON.stringify(error.response.data)}`);
       }
       throw error;
@@ -141,13 +167,13 @@ class EpicGamesAuth {
       headers: {
         'Authorization': `bearer ${this.accessToken}`,
         'Accept': 'application/json',
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
+        'User-Agent': 'EpicGamesLauncher/11.0.1-15407791+++Portal+Release-11.0 Windows/11.10.0-15306973, branch:release'
       }
     };
 
     try {
       const response = await axios.get(
-        `${this.epicApi}/account/api/oauth/accountInfo`,
+        `${this.currentEndpoint}/account/api/oauth/accountInfo`,
         config
       );
 
@@ -185,13 +211,13 @@ class EpicGamesAuth {
       headers: {
         'Content-Type': 'application/x-www-form-urlencoded',
         'Accept': 'application/json',
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
+        'User-Agent': 'EpicGamesLauncher/11.0.1-15407791+++Portal+Release-11.0 Windows/11.10.0-15306973, branch:release'
       }
     };
 
     try {
       const response = await axios.post(
-        `${this.epicApi}/account/api/oauth/token`,
+        `${this.currentEndpoint}/account/api/oauth/token`,
         data.toString(),
         config
       );
@@ -235,19 +261,22 @@ class EpicGamesAuth {
     };
 
     try {
-      // Use Epic Account Services endpoint for backup codes
+      console.log(`🔍 Fetching real backup codes from: ${this.currentEndpoint}/account/api/public/account/${this.accountId}/backupCodes`);
+      
       const response = await axios.get(
-        `https://account-public-service-prod.ol.epicgames.com/account/api/public/account/${this.accountId}/backupCodes`,
+        `${this.currentEndpoint}/account/api/public/account/${this.accountId}/backupCodes`,
         config
       );
 
       if (response.status === 200) {
+        console.log('✅ Successfully got real backup codes!');
         return response.data;
       } else {
         throw new Error(`Failed to get backup codes: ${response.status}`);
       }
     } catch (error) {
       if (error.response) {
+        console.log('Backup codes error response:', error.response.status, error.response.data);
         throw new Error(`Failed to get backup codes: ${error.response.status} - ${JSON.stringify(error.response.data)}`);
       }
       throw error;
@@ -266,24 +295,28 @@ class EpicGamesAuth {
         'Authorization': `bearer ${this.accessToken}`,
         'Accept': 'application/json',
         'Content-Type': 'application/json',
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
+        'User-Agent': 'EpicGamesLauncher/11.0.1-15407791+++Portal+Release-11.0 Windows/11.10.0-15306973, branch:release'
       }
     };
 
     try {
+      console.log(`🔍 Generating real backup code at: ${this.currentEndpoint}/account/api/public/account/${this.accountId}/backupCodes`);
+      
       const response = await axios.post(
-        `${this.epicApi}/account/api/public/account/${this.accountId}/backupCodes`,
+        `${this.currentEndpoint}/account/api/public/account/${this.accountId}/backupCodes`,
         {},
         config
       );
 
       if (response.status === 200) {
+        console.log('✅ Successfully generated real backup code!');
         return response.data;
       } else {
         throw new Error(`Failed to generate backup code: ${response.status}`);
       }
     } catch (error) {
       if (error.response) {
+        console.log('Generate backup code error response:', error.response.status, error.response.data);
         throw new Error(`Failed to generate backup code: ${error.response.status} - ${JSON.stringify(error.response.data)}`);
       }
       throw error;
@@ -301,23 +334,27 @@ class EpicGamesAuth {
       headers: {
         'Authorization': `bearer ${this.accessToken}`,
         'Accept': 'application/json',
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
+        'User-Agent': 'EpicGamesLauncher/11.0.1-15407791+++Portal+Release-11.0 Windows/11.10.0-15306973, branch:release'
       }
     };
 
     try {
+      console.log(`🔍 Deleting real backup code at: ${this.currentEndpoint}/account/api/public/account/${this.accountId}/backupCodes/${codeId}`);
+      
       const response = await axios.delete(
-        `${this.epicApi}/account/api/public/account/${this.accountId}/backupCodes/${codeId}`,
+        `${this.currentEndpoint}/account/api/public/account/${this.accountId}/backupCodes/${codeId}`,
         config
       );
 
       if (response.status === 200) {
+        console.log('✅ Successfully deleted real backup code!');
         return response.data;
       } else {
         throw new Error(`Failed to delete backup code: ${response.status}`);
       }
     } catch (error) {
       if (error.response) {
+        console.log('Delete backup code error response:', error.response.status, error.response.data);
         throw new Error(`Failed to delete backup code: ${error.response.status} - ${JSON.stringify(error.response.data)}`);
       }
       throw error;
@@ -325,4 +362,4 @@ class EpicGamesAuth {
   }
 }
 
-module.exports = { EpicGamesAuth };
+module.exports = { EpicGamesAuthReal };
