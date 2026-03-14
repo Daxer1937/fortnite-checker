@@ -33,7 +33,7 @@ module.exports = {
 
     if (!authSessions.has(userId)) {
       await interaction.followUp({
-        content: '❌ Please login first using /login',
+        content: '❌ Please login first using `/login` and complete with `/login_complete <code>`',
         ephemeral: true
       });
       return;
