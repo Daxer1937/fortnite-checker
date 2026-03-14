@@ -2,7 +2,7 @@ const axios = require('axios');
 
 class EpicGamesAuth {
   constructor() {
-    // Use the fortnitePCGameClient credentials from documentation
+    // Use the exact credentials from the documentation example
     this.clientId = 'ec684b8c687f479fadea3cb2ad83f5c6';
     this.clientSecret = 'e1f31c211f28413186262d37a13fc84d';
     this.epicApi = 'https://account-public-service-prod.ol.epicgames.com';
@@ -70,7 +70,8 @@ class EpicGamesAuth {
     
     const data = new URLSearchParams({
       grant_type: 'authorization_code',
-      code: authorizationCode
+      code: authorizationCode,
+      token_type: 'eg1'
     });
 
     const config = {
@@ -86,6 +87,7 @@ class EpicGamesAuth {
       console.log(`🔄 Exchanging code: ${authorizationCode}`);
       console.log(`🔄 Request data: ${data.toString()}`);
       console.log(`🔄 Basic auth: ${basicAuth.substring(0, 20)}...`);
+      console.log(`🔄 Expected basic auth: ZWM2ODRiOGM2ODdmNDc5ZmFkZWEzY2IyYWQ4M2Y1YzY6ZTFmMzFjMjExZjI4NDEzMTg2MjYyZDM3YTEzZmM4NGQ=`);
       
       const response = await axios.post(
         `${this.epicApi}/account/api/oauth/token`,
@@ -134,23 +136,30 @@ class EpicGamesAuth {
       }
     };
 
-    try {
-      const response = await axios.get(
-        `${this.epicApi}/account/api/public/account/${this.accountId}/backupCodes`,
-        config
-      );
+    // Try different possible backup codes endpoints
+    const endpoints = [
+      `${this.epicApi}/account/api/public/account/${this.accountId}/backupCodes`,
+      `${this.epicApi}/account/api/account/${this.accountId}/backupCodes`,
+      `${this.epicApi}/account/api/public/account/${this.accountId}/twoFactorBackup`,
+      `${this.epicApi}/account/api/account/${this.accountId}/twoFactorBackup`
+    ];
 
-      if (response.status === 200) {
-        return response.data;
-      } else {
-        throw new Error(`Failed to get backup codes: ${response.status}`);
+    for (const endpoint of endpoints) {
+      try {
+        console.log(`🔄 Trying backup codes endpoint: ${endpoint}`);
+        const response = await axios.get(endpoint, config);
+
+        if (response.status === 200) {
+          console.log(`✅ Successfully got backup codes from: ${endpoint}`);
+          return response.data;
+        }
+      } catch (error) {
+        console.log(`❌ Endpoint failed: ${endpoint} - ${error.response?.status || error.message}`);
+        continue;
       }
-    } catch (error) {
-      if (error.response) {
-        throw new Error(`Failed to get backup codes: ${error.response.status} - ${JSON.stringify(error.response.data)}`);
-      }
-      throw error;
     }
+
+    throw new Error('No working backup codes endpoint found. Backup codes may not be available through this API.');
   }
 
   async generateBackupCode() {
@@ -171,24 +180,30 @@ class EpicGamesAuth {
       }
     };
 
-    try {
-      const response = await axios.post(
-        `${this.epicApi}/account/api/public/account/${this.accountId}/backupCodes`,
-        {},
-        config
-      );
+    // Try different possible backup codes endpoints
+    const endpoints = [
+      `${this.epicApi}/account/api/public/account/${this.accountId}/backupCodes`,
+      `${this.epicApi}/account/api/account/${this.accountId}/backupCodes`,
+      `${this.epicApi}/account/api/public/account/${this.accountId}/twoFactorBackup`,
+      `${this.epicApi}/account/api/account/${this.accountId}/twoFactorBackup`
+    ];
 
-      if (response.status === 200) {
-        return response.data;
-      } else {
-        throw new Error(`Failed to generate backup code: ${response.status}`);
+    for (const endpoint of endpoints) {
+      try {
+        console.log(`🔄 Trying generate backup code endpoint: ${endpoint}`);
+        const response = await axios.post(endpoint, {}, config);
+
+        if (response.status === 200) {
+          console.log(`✅ Successfully generated backup code from: ${endpoint}`);
+          return response.data;
+        }
+      } catch (error) {
+        console.log(`❌ Generate endpoint failed: ${endpoint} - ${error.response?.status || error.message}`);
+        continue;
       }
-    } catch (error) {
-      if (error.response) {
-        throw new Error(`Failed to generate backup code: ${error.response.status} - ${JSON.stringify(error.response.data)}`);
-      }
-      throw error;
     }
+
+    throw new Error('No working backup codes endpoint found. Backup codes may not be available through this API.');
   }
 
   async deleteBackupCode(codeId) {
